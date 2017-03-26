@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en"> 
+	<head>
+		<meta charset="utf-8">
+		<title>Data visualization of geodata</title>
+		<script type="text/javascript" src="d3.min.js"></script>
+
+    </head>
+    
+	<body>
+		<form action id="cluster_select">
+		  <input type="radio" name="cluster" value="K2"> 2 clusters<br>
+		  <input type="radio" name="cluster" value="K3"> 3 clusters<br>
+		  <input type="radio" name="cluster" value="K4"> 4 clusters<br>
+		  <input type="radio" name="cluster" value="K5"> 5 clusters<br>
+		  <input type="radio" name="cluster" value="K6"> 6 clusters
+		</form>
+		
+		<script type="text/javascript">
+		
+		//Width and height of figure
+			var w = 700;
+			var h = 400;
+			
+		// Scaling the data
+			var projection = d3.geo.mercator() 
+			.center([-122.433701, 37.767683])
+				.translate([w/2, h/2])
+                .scale([130000]);
+		
+		//defining the first path generator
+		var path = d3.geo.path()
+				.projection(projection);
+		
+//Create SVG element
+		var svg = d3.select("body")
+					.append("svg")
+					.attr("width", w)
+					.attr("height", h)
+					.style("background-color", "white")
+				
+				
+		var centroid_data = {"K2": [[-122.41721258, 37.78739426],[-122.41924312, 37.76000422]], 
+				"K3": [[-122.41582476,   37.76134606],
+				[-122.41709742, 37.78742455], 
+				[-122.47811475,   37.73890649]], 
+				"K4": [[-122.41708247,   37.78742712],
+        [-122.41579333,   37.76144681],
+        [-122.46632498,   37.71881425],
+        [-122.48639783,   37.7585723 ]], 
+				"K5": [[-122.41877772,   37.7876559 ],
+        [-122.41584224,   37.7614257 ],
+       	[-122.48639783,   37.7585723 ],
+        [-122.46632498,   37.71881425],
+        [-122.40459074,   37.78553711]],
+				"K6": [[-122.41876998,   37.78765447],
+        [-122.41599756,   37.7617104 ],
+        [-122.46952143,   37.71917352],
+        [-122.40453469,   37.78553069],
+        [-122.48636573,   37.75868925],
+		[-122.4054032 ,   37.72757762]]};
+				
+		
+		//Load in GeoJSON data				
+		d3.json("shapedata.geojson", function(json) {
+		       svg.selectAll("path")
+               .data(json.features)
+               .enter()
+               .append("path")
+               .attr("d", path)
+				.attr("stroke-width","1" )
+				.attr("stroke", "black")
+			   .style("fill", "grey");
+			   });
+			   var color = d3.scale.category10();
+			   	   
+		//adding circles with prostitution crime data
+			   d3.json("prostitutiondata_ready.json", function(data) {
+				   svg.selectAll("circle.points")
+				   	.data(data)
+				   	.enter() 
+				   	.append("circle") 
+				   .attr("class", "points")
+	   			   	.attr("cx", function(d) {
+	   			   	 	return projection([d.X, d.Y])[0]; 
+	   				})
+					.attr("cy", function(d) {
+	   			   	 	return projection([d.X, d.Y])[1];
+	   			     })
+	   			    .attr("r", 2)
+ 	   				.style("fill", function(d){
+ 	   					return color(d.K3)
+ 	   				});
+	   				
+	   			    //.style("opacity", 0.75);
+					svg.selectAll("circle.centroid")
+					.data(centroid_data.K3)
+					.enter()
+					.append("circle")
+					.attr("class", "centroid")
+					.attr("cx", function(d) {
+	   			   	 	return projection(d)[0]; 
+	   				})
+					.attr("cy", function(d) {
+	   			   	 	return projection(d)[1]; 
+	   				})
+					.attr("r", 10)
+					.attr("stroke", "black")
+ 	   				.style("fill", function(d, i){
+ 	   					return color(i)
+ 	   				})
+					.style("opacity", 0.75)
+					});
+					
+				d3.select("#cluster_select")
+					.on("change", function(){
+						var n_cluster = document.querySelector('input[name="cluster"]:checked').value;
+						console.log(n_cluster)
+							svg.selectAll("circle.points")
+	 	   						.style("fill", function(d){
+									return color(d[n_cluster])}
+								);
+							svg.selectAll("circle.centroid")
+								.data(centroid_data[n_cluster])
+								.enter()
+								.append("circle")
+								.attr("class", "centroid")
+								.attr("cx", function(d) {
+				   			   	 	return projection(d)[0]; 
+				   				})
+								.attr("cy", function(d) {
+				   			   	 	return projection(d)[1]; 
+				   				})
+								.attr("stroke", "black")
+			 	   				.style("fill", function(d, i){
+			 	   					return color(i)
+			 	   				})
+								.style("opacity", 0.75)
+								.transition()
+								.duration(1000)
+								.attr("r", 10);
+								
+							/*	
+							svg.selectAll("circle.centroid")
+								.data(centroid_data[n_cluster])
+								.transition()
+								.duration()*/
+								
+							svg.selectAll("circle.centroid")
+								.data(centroid_data[n_cluster])
+								.exit()
+								.transition()
+								.duration(1000)
+								.attr("r", 0)
+								.remove();
+								
+								
+							
+							
+					})
+   		
+
+		
+		
+        </script>
+    </body>
+</html>
