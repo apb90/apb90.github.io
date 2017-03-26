@@ -7,11 +7,12 @@
 	<link rel="stylesheet" href="mystyle.css">
 </head>
 <body>
+	<h2> Assignment 2B</h2>
 	<h1>K-means: Prostitution in San Fransisco</h1>
-	<h4>The interactive plot below, allows you to investigate the events of prostitutions crimes in San Fransisco, colored based on calculated K-means values, for cluster numbers ranging from 2 to 6. <h4>
+	<h4>The interactive plot below, allows you to investigate the events of prostitution crimes in San Fransisco from 2003 to 2017, colored based on calculated K-means values for cluster numbers ranging from 2 to 6. <h4>
 	
 	<p>
-		Please select the number of clusters you would like to view
+		Please select the number of clusters (K) you would like to view
 	</p>
 	
 	<form action="" id="cluster_selector">
@@ -26,7 +27,7 @@
 	<br>
 	
 	<script>
-	//Defining the size and background color of the figure
+		//Defining the size and background color of the figure
 		var h = 500;
 		var w = 500;
 	
@@ -35,21 +36,21 @@
 			.attr("width", w)
 			.style("background-color", "#dddddd");
 	
-	//Defining colorscheme for plotting	
+		//Defining colorscheme for plotting	
 		var cScale = d3.scaleOrdinal(d3.schemeCategory10);
 	
-	//Scaling and center SF localization data 		
+		//Scaling and centering SF localization data 		
 		var projection = d3.geoMercator()
 			.center([-122.433701, 37.767683])
 	    	.scale(170000)
 	    	.translate([w / 2, h / 2]);
 	
-	//Loading in data for visualizing SF	
+		//Loading in a json file with data for visualizing SF	
 		d3.json("data/SF_districts.json", function(json) {
 				
 			var path = d3.geoPath()
 				.projection(projection);
-		// Adding borderlines for districts in SF	
+			// Adding borderlines for districts in SF	
 			svg.selectAll("path")
 	        	.data(json.features)
 	        	.enter()
@@ -61,10 +62,10 @@
 				
 		})
 		
-	//Loading in K-means data for prostitution events in SF			
+		//Loading in K-means data for prostitution events in SF			
 		d3.json("data/Plot_prostitution.json", function(data) {
 		
-		//Adding each prostitution event as a circle point
+			//Adding each prostitution event as a circle point
 			svg.selectAll("circle.crime")
 				.data(data["points"])
 				.enter()
@@ -75,7 +76,7 @@
 				.attr("r", 3)
 			.attr("fill", function(d) { return cScale(d["3"]) }); //Color based on Kmeans
 		
-		//Adding K-means centroids for each cluster
+			//Adding K-means centroids for each cluster
 			svg.selectAll("circle.centroid")
 				.data(data["centroids"]["3"])
 				.enter()
@@ -88,22 +89,19 @@
 				.attr("fill", function(d, i) { return cScale(i) })
 				.attr("opacity", 0.5);
 				
-		
-		//Changing cluster colors, centroids number, color and localization in response to clicking a cluster-botton
+			//Changing cluster colors, centroids number, color and localization in response to clicking a cluster-botton
 			d3.select("#cluster_selector")
 				.on("change", function() {
-				//Identifying the cluster botton selected
+					//Identifying the cluster number botton selected
 					var n_cluster = document.querySelector('input[name="clusters"]:checked').value;
-				//Updating colors of crime data
+					//Updating colors of crime data
 					svg.selectAll("circle.crime")
 						.attr("fill", function(d) { return cScale(d[n_cluster]) });
-					
-				//Updating centroid data	
+					//Updating centroid data	
 					var centroids = svg.selectAll("circle.centroid")
 						.data(data["centroids"][n_cluster])
-					
 					var duration = 1000;
-				//Letting extra centroids appear (if #cluster chosen > #cluster initial)	
+					//Letting extra centroids appear (if #cluster chosen > #cluster initial)	
 					centroids.enter()
 						.append("circle")
 						.attr("class", "centroid")
@@ -116,7 +114,7 @@
 						.transition()
 						.duration(duration)
 						.attr("r", 10)
-				//Moving "old" clusters to new, updated positions	
+					//Moving "old" clusters to new, updated positions	
 					centroids
 						.transition()
 						.duration(duration)
@@ -127,7 +125,7 @@
 						.attr("stroke", "black")
 						.attr("fill", function(d, i) { return cScale(i) })
 						.attr("opacity", 0.5);
-				//Removing extra centorids (if #cluster chosen < #cluster initial)
+					//Removing extra centorids (if #cluster chosen < #cluster initial)
 					centroids.exit()
 						.transition()
 						.duration(duration)
